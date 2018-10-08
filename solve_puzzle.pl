@@ -11,14 +11,12 @@
 % list per puzzle row.  WordList is also a list of lists of
 % characters, one list per word.
 
-solve_puzzle(Puzzle0, WordList, Puzzle, SolutionFile1, SolutionFile2) :-
+solve_puzzle(Puzzle0, WordList, Puzzle) :-
     % The format of Puzzle1 is not really a table
     solve_puzzle_iteration(Puzzle0, WordList, WordList1, 1, Puzzle1),
-    % print_puzzle(Puzzle1, SolutionFile1),
-    clpfd:transpose(Puzzle1, Puzzle),
-    print_puzzle(Puzzle, SolutionFile2).
-    % solve_puzzle_iteration(TransPuzzle1, WordList1, [], 1, Puzzle2),
-    % clpfd:transpose(Puzzle2, Puzzle).
+    clpfd:transpose(Puzzle1, TransPuzzle1),
+    solve_puzzle_iteration(TransPuzzle1, WordList1, [], 1, Puzzle2),
+    clpfd:transpose(Puzzle2, Puzzle).
 
 % 一个call填完所有的横，一个call填完所有的竖，然后看是否能把所有的词都填完
 solve_puzzle_iteration(Puzzle, NewWordList, NewWordList, Range, Puzzle) :-
