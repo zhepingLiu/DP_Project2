@@ -5,11 +5,11 @@
 
 :- ensure_loaded(solve_puzzle).
 
-main(PuzzleFile, WordlistFile, SolutionFile) :-
+main(PuzzleFile, WordlistFile, SolutionFile, SolutionFile1, SolutionFile2) :-
 	read_file(PuzzleFile, Puzzle),
 	read_file(WordlistFile, Wordlist),
 	valid_puzzle(Puzzle),
-	solve_puzzle(Puzzle, Wordlist, Solved),
+	solve_puzzle(Puzzle, Wordlist, Solved, SolutionFile1, SolutionFile2),
 	print_puzzle(SolutionFile, Solved).
 
 read_file(Filename, Content) :-
