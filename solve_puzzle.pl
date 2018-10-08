@@ -19,10 +19,14 @@ solve_puzzle(Puzzle0, WordList, Puzzle) :-
     clpfd:transpose(Puzzle2, Puzzle).
 
 % 一个call填完所有的横，一个call填完所有的竖，然后看是否能把所有的词都填完
-solve_puzzle_iteration(Puzzle, NewWordList, NewWordList, Range, Puzzle) :-
-    length(NewWordList, MaxRange),
-    Range > MaxRange.
+solve_puzzle_iteration(Puzzle0, WordList, NewWordList, Range, Puzzle1) :-
+    length(WordList, MaxRange),
+    Range > MaxRange,
+    Puzzle1 = Puzzle0,
+    NewWordList = WordList.
 solve_puzzle_iteration(Puzzle0, WordList, NewWordList, Range, Puzzle) :-
+    length(WordList, MaxRange),
+    Range =< MaxRange,
     parse_puzzle(Puzzle0, WordList, WordList1, Range, [], Puzzle1),
     Range1 is Range + 1,
     solve_puzzle_iteration(Puzzle1, WordList1, NewWordList, Range1, Puzzle).
