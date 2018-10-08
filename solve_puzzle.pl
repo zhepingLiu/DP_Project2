@@ -12,39 +12,27 @@
 % characters, one list per word.
 
 solve_puzzle(Puzzle0, WordList, Puzzle) :-
-    solve_puzzle_iteration(Puzzle0, WordList, 1, Puzzle).
-
-% 每次返回的是经过横竖两次填写的puzzle
-% solve_puzzle_iteration(Puzzle0, WordList, NewWordList, Range, TempPuzzle, Puzzle)
-solve_puzzle_iteration(Puzzle, [], _, Puzzle).
-solve_puzzle_iteration(Puzzle0, WordList, Range, Puzzle) :-
-    length(WordList, MaxRange),
-    Range =< MaxRange,
-    parse_puzzle(Puzzle0, WordList, WordList1, Range, [], Puzzle1),
+    solve_puzzle_iteration(Puzzle0, WordList, WordList1, 1, Puzzle1),
     transpose(Puzzle1, TransPuzzle1),
-    check_range2(Puzzle0, Puzzle1, Range, Range1),
-    parse_puzzle(TransPuzzle1, WordList1, WordList2, Range1, [], Puzzle2),
-    transpose(Puzzle2, Puzzle3),
-    check_range(Puzzle0, Puzzle3, Range, Range2),
-    solve_puzzle_iteration(Puzzle3, WordList2, Range2, Puzzle).
+    solve_puzzle_iteration(TransPuzzle1, WordList1, [], 1, Puzzle2),
+    transpose(Puzzle2, Puzzle).
+
+% 一个call填完所有的横，一个call填完所有的竖，然后看是否能把所有的词都填完
+solve_puzzle_iteration(Puzzle0, WordList, _, Range, Puzzle) :-
+    length(WordList, MaxRange),
+    Range > MaxRange,
+    Puzzle = Puzzle0.
+solve_puzzle_iteration(Puzzle0, WordList, NewWordList, Range, Puzzle) :-
+    parse_puzzle(Puzzle0, WordList, WordList1, Range, [], Puzzle1),
+    % check_range(Puzzle0, Puzzle1, Range, Range1),
+    Range1 is Range + 1,
+    solve_puzzle_iteration(Puzzle1, WordList1, NewWordList, Range1, Puzzle).
 
 
-% check_range(Puzzle0, Puzzle3, Range, Range1) :-
-%     Puzzle0 = Puzzle3,
-%     Range1 is Range + 1.
-% check_range(Puzzle0, Puzzle3, _, Range1) :-
-%     Puzzle0 \= Puzzle3,
-%     Range1 = 1.
 check_range(Puzzle0, Puzzle1, Range, Range1) :-
     (
         Puzzle0 = Puzzle1
     ->  Range1 is Range + 1
-    ;   Range1 = 1
-    ).
-check_range2(Puzzle0, Puzzle1, Range, Range1) :-
-    (
-        Puzzle0 = Puzzle1
-    ->  Range1 = Range
     ;   Range1 = 1
     ).
 
@@ -122,17 +110,10 @@ find_all_match_words(Slot, WordList, Words) :-
 
 % find a match word from the word list
 find_match_word(Slot, WordList, Word) :-
-    length(Slot, Length),
     member(Word, WordList),
+    length(Slot, Length),
     length(Word, Length),
-    string_chars(Word, SingleWordList),
-    match_word(Slot, SingleWordList).
-find_match_word(Slot, WordList, Word) :-
-    length(Slot, Length),
-    member(Word, WordList),
-    length(Word, Length1),
-    Length \= Length1,
-    Word = [].
+    match_word(Slot, Word).
     
 
 % Check whether one slot and one word match each other
