@@ -11,24 +11,51 @@
 % list per puzzle row.  WordList is also a list of lists of
 % characters, one list per word.
 
-solve_puzzle(Puzzle0, WordList, Puzzle, SolutionFile1, SolutionFile2) :-
-    % transpose(Puzzle0, TransPuzzle),
-    parse_puzzle(Puzzle0, WordList, WordList1, [], Puzzle),
-    transpose(Puzzle, TransPuzzle),
-    print_puzzle(SolutionFile1, Puzzle),
-    % Empty word list is to make sure there is no word left at the end
-    parse_puzzle(TransPuzzle, WordList1, [], [], Puzzle1),
-    print_puzzle(SolutionFile2, Puzzle1),
-    transpose(Puzzle1, Puzzle).
+solve_puzzle(Puzzle0, WordList, Puzzle) :-
+    solve_puzzle_iteration(Puzzle0, WordList, 1, Puzzle).
+
+% 每次返回的是经过横竖两次填写的puzzle
+% solve_puzzle_iteration(Puzzle0, WordList, NewWordList, Range, TempPuzzle, Puzzle)
+solve_puzzle_iteration(Puzzle, [], _, Puzzle).
+solve_puzzle_iteration(Puzzle0, WordList, Range, Puzzle) :-
+    length(WordList, MaxRange),
+    Range =< MaxRange,
+    parse_puzzle(Puzzle0, WordList, WordList1, Range, [], Puzzle1),
+    transpose(Puzzle1, TransPuzzle1),
+    check_range2(Puzzle0, Puzzle1, Range, Range1),
+    parse_puzzle(TransPuzzle1, WordList1, WordList2, Range1, [], Puzzle2),
+    transpose(Puzzle2, Puzzle3),
+    check_range(Puzzle0, Puzzle3, Range, Range2),
+    solve_puzzle_iteration(Puzzle3, WordList2, Range2, Puzzle).
 
 
-parse_puzzle([], WordList2, WordList2, Puzzle, Puzzle).
-parse_puzzle([Row|RestPuzzle], WordList, WordList2, TempPuzzle, Puzzle) :-
+% check_range(Puzzle0, Puzzle3, Range, Range1) :-
+%     Puzzle0 = Puzzle3,
+%     Range1 is Range + 1.
+% check_range(Puzzle0, Puzzle3, _, Range1) :-
+%     Puzzle0 \= Puzzle3,
+%     Range1 = 1.
+check_range(Puzzle0, Puzzle1, Range, Range1) :-
+    (
+        Puzzle0 = Puzzle1
+    ->  Range1 is Range + 1
+    ;   Range1 = 1
+    ).
+check_range2(Puzzle0, Puzzle1, Range, Range1) :-
+    (
+        Puzzle0 = Puzzle1
+    ->  Range1 = Range
+    ;   Range1 = 1
+    ).
+
+
+parse_puzzle([], WordList2, WordList2, _, Puzzle, Puzzle).
+parse_puzzle([Row|RestPuzzle], WordList, WordList2, Range, TempPuzzle, Puzzle) 
+    :-
     parse_row(Row, [], [], AllSlots),
-    % parse_slots(AllSlots, 0, WordList, WordList1, Row, SolvedRow),
-    parse_slots(AllSlots, WordList, WordList1, Row, SolvedRow),
+    parse_slots(AllSlots, WordList, WordList1, Row, SolvedRow, Range),
     append(TempPuzzle, [SolvedRow], TempPuzzle1),
-    parse_puzzle(RestPuzzle, WordList1, WordList2, TempPuzzle1, Puzzle).
+    parse_puzzle(RestPuzzle, WordList1, WordList2, Range, TempPuzzle1, Puzzle).
 
 
 parse_row([], CurrentSlot, TempAllSlots, AllSlots) :-
@@ -42,23 +69,39 @@ parse_row([Char|RestRow], CurrentSlot, TempAllSlots, AllSlots) :-
     parse_row(RestRow, CurrentSlot1, TempAllSlots, AllSlots).
 
 
-parse_slots([], NewWordList, NewWordList, SolvedRow, SolvedRow).
-parse_slots([[]|RestSlots], WordList, NewWordList, TempRow, SolvedRow) :-
-    parse_slots(RestSlots, WordList, NewWordList, TempRow, SolvedRow).
-parse_slots([Slot|RestSlots], WordList, NewWordList, TempRow, SolvedRow) :-
+parse_slots([], NewWordList, NewWordList, SolvedRow, SolvedRow, _).
+parse_slots([[]|RestSlots], WordList, NewWordList, TempRow, SolvedRow, Range) :-
+    parse_slots(RestSlots, WordList, NewWordList, TempRow, SolvedRow, Range).
+parse_slots([Slot|RestSlots], WordList, NewWordList, TempRow, SolvedRow, Range) 
+    :-
     Slot \= [],
-    find_match_word(Slot, WordList, Word),
-    Word \= [],
-    string_chars(Word, SingleWordList),
-    fill_row_with_word(TempRow, SingleWordList, PartialRow, UnsolvedRow, []),
-    delete(WordList, Word, WordList1),
-    parse_slots(RestSlots, WordList1, NewWordList, UnsolvedRow, PartialRow2),
+    find_all_match_words(Slot, WordList, Words),
+    fill_slots(TempRow, Words, WordList, WordList1, PartialRow, 
+               UnsolvedRow, Range),
+    parse_slots(RestSlots, WordList1, NewWordList, 
+                UnsolvedRow, PartialRow2, Range),
     append(PartialRow, PartialRow2, SolvedRow).
-parse_slots([Slot|RestSlots], WordList, NewWordList, TempRow, SolvedRow) :-
-    Slot \= [],
-    find_match_word(Slot, WordList, Word),
-    Word = [],
-    parse_slots(RestSlots, WordList, NewWordList, TempRow, SolvedRow).
+
+
+fill_slots(TempRow, Words, WordList, WordList1, PartialRow, 
+           UnsolvedRow, Range) :-
+    length(Words, X),
+    X > 0,
+    X =< Range,
+    % string_chars(Word, SingleWordList),
+    member(Word, Words),
+    fill_row_with_word(TempRow, Word, PartialRow, UnsolvedRow, []),
+    delete(WordList, Word, WordList1).
+fill_slots(TempRow, Words, WordList, WordList1, _, UnsolvedRow, Range) :-
+    length(Words, X),
+    X > Range,
+    WordList1 = WordList,
+    UnsolvedRow = TempRow.
+fill_slots(TempRow, Words, WordList, WordList1, _, UnsolvedRow, _) :-
+    length(Words, X),
+    X = 0,
+    WordList1 = WordList,
+    UnsolvedRow = TempRow.
 
 
 fill_row_with_word(['#'|RestRow], Word, PartialRow, UnsolvedRow, Solid) :-
@@ -78,8 +121,6 @@ find_all_match_words(Slot, WordList, Words) :-
 
 
 % find a match word from the word list
-find_match_word(_, [], Word) :-
-    Word = [].
 find_match_word(Slot, WordList, Word) :-
     length(Slot, Length),
     member(Word, WordList),
@@ -94,7 +135,7 @@ find_match_word(Slot, WordList, Word) :-
     Word = [].
     
 
-% Check one slot and one word match each other
+% Check whether one slot and one word match each other
 match_word([], []).
 match_word(["_"|RestSlot], [_|RestWord]) :-
     match_word(RestSlot, RestWord).
