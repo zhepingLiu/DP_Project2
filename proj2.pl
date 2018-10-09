@@ -5,6 +5,8 @@
 
 :- ensure_loaded(solve_puzzle).
 
+% main program that reads the puzzle file, word list file, solve the puzzle and
+% print out the solution to solution file given.
 main(PuzzleFile, WordlistFile, SolutionFile) :-
 	read_file(PuzzleFile, Puzzle),
 	read_file(WordlistFile, Wordlist),
@@ -12,11 +14,13 @@ main(PuzzleFile, WordlistFile, SolutionFile) :-
 	solve_puzzle(Puzzle, Wordlist, Solved),
 	print_puzzle(SolutionFile, Solved).
 
+% read a file
 read_file(Filename, Content) :-
 	open(Filename, read, Stream),
 	read_lines(Stream, Content),
 	close(Stream).
 
+% read lines in a file
 read_lines(Stream, Content) :-
 	read_line(Stream, Line, Last),
 	(   Last = true
@@ -28,6 +32,7 @@ read_lines(Stream, Content) :-
 	    read_lines(Stream, Content1)
 	).
 
+% read a line and check if it is the last line in the file
 read_line(Stream, Line, Last) :-
 	get_char(Stream, Char),
 	(   Char = end_of_file
@@ -40,40 +45,30 @@ read_line(Stream, Line, Last) :-
 	    read_line(Stream, Line1, Last)
 	).
 
+% print a puzzle to a solution file
 print_puzzle(SolutionFile, Puzzle) :-
 	open(SolutionFile, write, Stream),
 	maplist(print_row(Stream), Puzzle),
 	close(Stream).
 
+% print one row
 print_row(Stream, Row) :-
 	maplist(put_puzzle_char(Stream), Row),
 	nl(Stream).
 
+% print one character
 put_puzzle_char(Stream, Char) :-
 	(   var(Char)
 	->  put_char(Stream, '_')
 	;   put_char(Stream, Char)
 	).
 
+% verify if the puzzle is a valid puzzle
 valid_puzzle([]).
 valid_puzzle([Row|Rows]) :-
 	maplist(samelength(Row), Rows).
 
-
+% check if two lists are with the same length
 samelength([], []).
 samelength([_|L1], [_|L2]) :-
 	same_length(L1, L2).
-
-
-% solve_puzzle(Puzzle0, WordList, Puzzle)
-% should hold when Puzzle is a solved version of Puzzle0, with the
-% empty slots filled in with words from WordList.  Puzzle0 and Puzzle
-% should be lists of lists of characters (single-character atoms), one
-% list per puzzle row.  WordList is also a list of lists of
-% characters, one list per word.
-%
-% This code is obviously wrong: it just gives back the unfilled puzzle
-% as result.  You'll need to replace this with a working
-% implementation.
-
-% solve_puzzle(Puzzle, _, Puzzle).
