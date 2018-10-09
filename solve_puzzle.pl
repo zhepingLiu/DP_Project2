@@ -14,7 +14,7 @@
 solve_puzzle(Puzzle0, WordList, Puzzle) :-
     solve_puzzle_iteration(Puzzle0, WordList, 1, Puzzle).
 
-% 每次返回的是经过横竖两次填写的puzzle
+
 % solve_puzzle_iteration(Puzzle0, WordList, NewWordList, Range, TempPuzzle, Puzzle)
 solve_puzzle_iteration(Puzzle, [], _, Puzzle).
 solve_puzzle_iteration(Puzzle0, WordList, Range, Puzzle) :-
@@ -29,12 +29,6 @@ solve_puzzle_iteration(Puzzle0, WordList, Range, Puzzle) :-
     solve_puzzle_iteration(Puzzle3, WordList2, Range2, Puzzle).
 
 
-% check_range(Puzzle0, Puzzle3, Range, Range1) :-
-%     Puzzle0 = Puzzle3,
-%     Range1 is Range + 1.
-% check_range(Puzzle0, Puzzle3, _, Range1) :-
-%     Puzzle0 \= Puzzle3,
-%     Range1 = 1.
 check_range(Puzzle0, Puzzle1, Range, Range1) :-
     (
         Puzzle0 = Puzzle1
@@ -76,32 +70,35 @@ parse_slots([Slot|RestSlots], WordList, NewWordList, TempRow, SolvedRow, Range)
     :-
     Slot \= [],
     find_all_match_words(Slot, WordList, Words),
-    fill_slots(TempRow, Words, WordList, WordList1, PartialRow, 
+    fill_slots(TempRow, Slot, Words, WordList, WordList1, PartialRow, 
                UnsolvedRow, Range),
     parse_slots(RestSlots, WordList1, NewWordList, 
                 UnsolvedRow, PartialRow2, Range),
     append(PartialRow, PartialRow2, SolvedRow).
 
 
-fill_slots(TempRow, Words, WordList, WordList1, PartialRow, 
+fill_slots(TempRow, _, Words, WordList, WordList1, PartialRow, 
            UnsolvedRow, Range) :-
-    length(Words, X),
-    X > 0,
-    X =< Range,
-    % string_chars(Word, SingleWordList),
+    length(Words, NumberCandidates),
+    NumberCandidates > 0,
+    NumberCandidates =< Range,
     member(Word, Words),
     fill_row_with_word(TempRow, Word, PartialRow, UnsolvedRow, []),
     delete(WordList, Word, WordList1).
-fill_slots(TempRow, Words, WordList, WordList1, _, UnsolvedRow, Range) :-
-    length(Words, X),
-    X > Range,
-    WordList1 = WordList,
-    UnsolvedRow = TempRow.
-fill_slots(TempRow, Words, WordList, WordList1, _, UnsolvedRow, _) :-
-    length(Words, X),
-    X = 0,
-    WordList1 = WordList,
-    UnsolvedRow = TempRow.
+fill_slots(TempRow, Slot, Words, WordList, WordList1, PartialRow,
+           UnsolvedRow, Range) :-
+    length(Words, NumberCandidates),
+    NumberCandidates > Range,
+    % Fill the empty slot into the original row, get the unsolved row
+    fill_row_with_word(TempRow, Slot, PartialRow, UnsolvedRow, []),
+    WordList1 = WordList.
+fill_slots(TempRow, Slot, Words, WordList, WordList1, PartialRow,
+           UnsolvedRow, _) :-
+    length(Words, NumberCandidates),
+    NumberCandidates = 0,
+    % Fill the empty slot into the original row, get the unsolved row
+    fill_row_with_word(TempRow, Slot, PartialRow, UnsolvedRow, []),
+    delete(WordList, Slot, WordList1).
 
 
 fill_row_with_word(['#'|RestRow], Word, PartialRow, UnsolvedRow, Solid) :-
@@ -125,7 +122,7 @@ find_match_word(Slot, WordList, Word) :-
     length(Slot, Length),
     member(Word, WordList),
     length(Word, Length),
-    match_word(Slot, SingleWordList).
+    match_word(Slot, Word).
 
 
 % Check whether one slot and one word match each other
