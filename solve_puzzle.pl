@@ -125,15 +125,8 @@ find_match_word(Slot, WordList, Word) :-
     length(Slot, Length),
     member(Word, WordList),
     length(Word, Length),
-    string_chars(Word, SingleWordList),
     match_word(Slot, SingleWordList).
-find_match_word(Slot, WordList, Word) :-
-    length(Slot, Length),
-    member(Word, WordList),
-    length(Word, Length1),
-    Length \= Length1,
-    Word = [].
-    
+
 
 % Check whether one slot and one word match each other
 match_word([], []).
