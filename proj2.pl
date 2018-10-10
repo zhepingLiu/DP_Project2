@@ -1,7 +1,16 @@
 % Declarative Programming Project 2
 % Author : Zheping Liu, 683781, zhepingl
+% This file includes the main program and some utility functions 
+% for Declarative Programming project.
 
-% TODO: File Level Documentation
+% The main program will read a puzzle file, a wordlist file, solve the puzzle
+% and wirte the solution to solution file. Other utility functions includes
+% functionality for reading files (read_file, read_lines, read_line);
+% printing puzzles to files (print_puzzle, print_row, print_puzzle_char);
+% validating puzzles (valid_puzzle) and its helper function same_length.
+% Where the function solve_puzzle will be included in another file 
+% solve_puzzle.pl, which includes all necessary functions to find the solution
+% to a particular puzzle with a given word list.
 
 :- ensure_loaded(solve_puzzle).
 

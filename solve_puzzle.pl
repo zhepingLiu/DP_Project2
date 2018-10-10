@@ -1,5 +1,27 @@
 % Declarative Programming Project 2
 % Author : Zheping Liu, 683781, zhepingl
+% This file contains all necessary functions to solve a given puzzle with a
+% given word list.
+
+% This file will take the puzzle and word list read by the main program in
+% the file proj2.pl (solve_puzzle, solve_puzzle_iteration), solve it in both
+% horizontal direction and vertical direction using the same word list, where
+% solve one direction of the puzzle (parse_puzzle) is done by applying 
+% following steps:
+% Firstly, find all slots in the puzzle that needs to be filled by a word in 
+% the given word list (parse_row); 
+% Secondly, iterate through all slots, find matched words for each slot, if the
+% number of candidates is in the range restriction, fill one of the candidates
+% into the slot, remove this candidate from word list and continue till all
+% words in the word list have been filled somewhere.
+
+% Assumptions: 
+% - the puzzle read by the main program in proj2.pl is correct, this file
+% does not check the correctness of the puzzle passed in;
+% - the passed in word list is the correct one for the given puzzle;
+% - the solid cell in the puzzle is represented using '#', and the empty cell
+%   is represented using '_';
+
 
 :- ensure_loaded(proj2).
 :- ensure_loaded(library(clpfd)).
